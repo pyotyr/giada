@@ -247,6 +247,7 @@ LangMap::LangMap()
 
 	m_data[BROWSER_SHOWHIDDENFILES] = "Show hidden files";
 	m_data[BROWSER_PROJECTNAME] = "Project name";
+	m_data[BROWSER_FOLDERNOTFOUND] = "This folder is not available. Check the path and try again.";
 	m_data[BROWSER_PLAYPREVIEW] = "Play preview";
 	m_data[BROWSER_STOPPREVIEW] = "Stop preview";
 	m_data[BROWSER_PREVIEWERROR] = "Could not preview this audio file.";

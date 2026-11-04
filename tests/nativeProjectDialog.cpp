@@ -11,6 +11,8 @@
 #include "src/gui/elems/config/tabMisc.h"
 #include "src/gui/elems/basics/choice.h"
 #include "src/gui/elems/basics/textButton.h"
+#include "src/gui/elems/basics/input.h"
+#include "src/gui/elems/fileBrowser.h"
 #include "src/gui/elems/basics/boxtypes.h"
 #include "src/gui/dialogs/browser/browserLoad.h"
 #include "src/gui/ui.h"
@@ -385,6 +387,14 @@ public:
         : gdBrowserLoad("Giada browser test", directory, [](void*) {}, {}, model, audio) {}
     bool previewVisible() const { return preview->visible(); }
     int previewWidth() const { return preview->w(); }
+    Fl_Input* pathInput() const { return dynamic_cast<Fl_Input*>(where->child(0)); }
+    std::string listedPath() const { return browser->getCurrentDir(); }
+    bool lists(const std::string& name) const
+    {
+        for (int row = 1; row <= browser->size(); ++row)
+            if (browser->text(row) && name == browser->text(row)) return true;
+        return false;
+    }
 };
 }
 
@@ -447,6 +457,39 @@ TEST_CASE("Audio browser has an optional visible preview control", "[.][windows-
         evidence.snapshotWidget(browser, "browser-after-preview", true);
         browser.hide();
     }
+}
+
+TEST_CASE("Browser path field accepts a pasted quoted folder and opens it on Enter", "[.][windows-gui]")
+{
+    using namespace native_dialog_tests;
+    TestUi state;
+    DialogRun evidence(Scenario::SAVE_NEW);
+    const auto destination = evidence.root / "Preview sounds with spaces";
+    REQUIRE(fs::create_directory(destination));
+    std::ofstream(destination / "Kick.wav") << "Temporary browser fixture";
+    PreviewBrowser browser(state.ui.model, juce::String(evidence.root.c_str()).toStdString(), true);
+    browser.make_current();
+    fl_font(FL_HELVETICA, giada::G_GUI_FONT_SIZE_BASE);
+    Fl::check();
+    auto* input = browser.pathInput();
+    REQUIRE(input);
+    CHECK_FALSE(input->readonly());
+    CHECK(input->when() == FL_WHEN_ENTER_KEY_ALWAYS);
+    evidence.snapshotWidget(browser, "path-before-enter", true);
+    // Exercise insertion and the input's real Enter callback without changing
+    // the user's system clipboard during an automated test.
+    const auto pasted = std::string("\"") + juce::String(destination.c_str()).toStdString() + "\"";
+    input->replace(0, input->size(), pasted.c_str());
+    CHECK(fs::equivalent(fs::path(browser.listedPath()), evidence.root));
+    CHECK(fs::equivalent(fs::path(browser.getCurrentPath()), evidence.root));
+    input->do_callback();
+    CHECK(fs::equivalent(fs::path(browser.listedPath()), destination));
+    CHECK(browser.lists("Kick.wav"));
+    input->do_callback(); // Enter also works without another text edit.
+    CHECK(fs::equivalent(fs::path(browser.listedPath()), destination));
+    Fl::check();
+    evidence.snapshotWidget(browser, "path-after-enter", true);
+    browser.hide();
 }
 
 TEST_CASE("Native Save accepts a new project through its real Save button", "[.][windows-gui]")

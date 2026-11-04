@@ -37,7 +37,7 @@ if (-not (Test-Path -LiteralPath $junit)) {
 }
 [xml]$results = Get-Content -LiteralPath $junit -Raw
 $cases = @($results.SelectNodes('//testcase'))
-if ($cases.Count -lt 7) {
-    throw "Expected at least seven Windows GUI test cases; found $($cases.Count)."
+if ($cases.Count -lt 8) {
+    throw "Expected at least eight Windows GUI test cases; found $($cases.Count)."
 }
 Write-Host "Windows GUI tests passed ($($cases.Count) cases). Report: $junit"

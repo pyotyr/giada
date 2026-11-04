@@ -59,6 +59,12 @@ preview. Changing selection or directory, loading a sample, and closing the
 browser all stop the preview. Preview audio uses the existing audio output at
 half volume and is never added to the project's wave list.
 
+OS-native dialogs remain the default while Giada's browser with audio preview is
+further developed and made easier to use. In Giada's browser, the location field
+accepts typed or pasted folder paths: press Enter to navigate. Quoted paths from
+Explorer's Copy as path are accepted. Invalid paths leave the current folder
+unchanged and display an error.
+
 Regression tests cover names and paths containing spaces and dots, selecting an
 existing bundle without nesting projects, and serializing/reopening project data.
 The build helper runs native Windows GUI tests after the unit tests. The GUI

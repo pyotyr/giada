@@ -247,6 +247,7 @@ public:
 
 	static constexpr auto BROWSER_SHOWHIDDENFILES = "browser_showHiddenFiles";
 	static constexpr auto BROWSER_PROJECTNAME = "browser_projectName";
+	static constexpr auto BROWSER_FOLDERNOTFOUND = "browser_folderNotFound";
 	static constexpr auto BROWSER_PLAYPREVIEW = "browser_playPreview";
 	static constexpr auto BROWSER_STOPPREVIEW = "browser_stopPreview";
 	static constexpr auto BROWSER_PREVIEWERROR = "browser_previewError";
