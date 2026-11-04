@@ -253,7 +253,7 @@ LangMap::LangMap()
 	m_data[BROWSER_PREVIEWERROR] = "Could not preview this audio file.";
 	m_data[CONFIG_MISC_FILEBROWSER] = "Sample browser";
 	m_data[CONFIG_MISC_FILEBROWSER_GIADA] = "Giada browser (experimental)";
-	m_data[CONFIG_MISC_FILEBROWSER_SYSTEM] = "OS native (default)";
+	m_data[CONFIG_MISC_FILEBROWSER_SYSTEM] = "OS native";
 	m_data[BROWSER_SAVEIN] = "Save in";
 	m_data[BROWSER_PROJECTFOLDER] = "Project folder";
 	m_data[BROWSER_SYSTEMDIALOGERROR] = "Unable to open the system file dialog.";

@@ -143,8 +143,7 @@ Conf parse_(std::ifstream& ifs)
 	conf.valid                      = true;
 	conf.logMode                    = j.value(CONF_KEY_LOG_MODE, conf.logMode);
 	conf.showTooltips               = j.value(CONF_KEY_SHOW_TOOLTIPS, conf.showTooltips);
-	conf.useNativeSampleDialogs     = j.value("use_native_sample_dialogs",
-	    j.value("use_native_project_dialogs", conf.useNativeSampleDialogs));
+	conf.useNativeSampleDialogs     = j.value("use_native_sample_dialogs", conf.useNativeSampleDialogs);
 	conf.langMap                    = j.value(CONF_KEY_LANGMAP, conf.langMap);
 	conf.soundSystem                = j.value(CONF_KEY_SOUND_SYSTEM, conf.soundSystem);
 	conf.soundDeviceOut             = j.value(CONF_KEY_SOUND_DEVICE_OUT, conf.soundDeviceOut);

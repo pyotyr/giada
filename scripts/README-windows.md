@@ -54,18 +54,18 @@ The storage layer confirms replacement of existing bundles. Open selects the
 FLTK's standard fallback where a native desktop chooser is unavailable.
 
 Open Project and Save Project always use the native dialogs. Settings > Misc >
-Sample browser switches sample selection between OS native (default) and Giada
-browser (experimental). The preference is saved on normal shutdown; the previous
-development build's browser preference is migrated to sample selection only.
+Sample browser switches sample selection between Giada browser (experimental,
+default) and OS native. Explicit sample-browser preferences are saved on normal
+shutdown. The old project-browser preference does not control sample selection.
 Giada's sample browser offers Play preview / Stop preview. Changing selection or
 directory, loading a sample, and closing the browser all stop preview playback.
 Preview audio uses the existing output at half volume and is never added to the
 project's wave list. Project dialogs do not offer audio previews.
 
-For the future PR: OS-native sample selection remains the default while Giada's
-browser with audio preview is further developed and made easier to use. The
-maintainer is welcome to make Giada's browser the sample-selection default if
-preferred. This choice does not change the native project-saving workflow.
+Giada's sample browser is the default so audio preview is available
+while choosing samples, and remains marked experimental while its usability is
+improved. The maintainer is welcome to choose either sample-browser default.
+This choice does not change the native project-saving workflow.
 In Giada's sample browser, the location field
 accepts typed or pasted folder paths: press Enter to navigate. Quoted paths from
 Explorer's Copy as path are accepted. Invalid paths leave the current folder
@@ -96,7 +96,7 @@ uploads the results as an artifact. A local build may explicitly use
 and project reopening with third-party synth settings still need listening and
 integration checks.
 
-Validation scope for a future PR:
+Validation scope:
 
 - Windows: full application build, unit suite, native dialog and FLTK control GUI
   tests, including deletion while browsing, cancellation, preference switching,

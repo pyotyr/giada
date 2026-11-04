@@ -422,23 +422,24 @@ TEST_CASE("Sample browser setting switches immediately and survives configuratio
     Fl::check();
     auto* choice = findBrowserChoice(*tab);
     REQUIRE(choice);
-    CHECK(choice->getSelectedId() == 1);
-    CHECK(choice->getSelectedLabel() == "OS native (default)");
-    evidence.snapshotWidget(window, "settings-os-native", false);
-    choice->showItem(0);
-    choice->onChange(0);
-    CHECK_FALSE(state.ui.model.useNativeSampleDialogs);
+    CHECK_FALSE(giada::m::Conf{}.useNativeSampleDialogs);
+    CHECK(choice->getSelectedId() == 0);
+    CHECK(choice->getSelectedLabel() == "Giada browser (experimental)");
+    evidence.snapshotWidget(window, "settings-giada-default", false);
+    choice->showItem(1);
+    choice->onChange(1);
+    CHECK(state.ui.model.useNativeSampleDialogs);
     giada::m::Conf saved;
     state.ui.model.store(saved);
     giada::v::Model reopened;
     reopened.load(saved);
-    CHECK_FALSE(reopened.useNativeSampleDialogs);
+    CHECK(reopened.useNativeSampleDialogs);
     window.redraw();
     Fl::check();
-    evidence.snapshotWidget(window, "settings-experimental", false);
-    choice->showItem(1);
-    choice->onChange(1);
-    CHECK(state.ui.model.useNativeSampleDialogs);
+    evidence.snapshotWidget(window, "settings-os-native", false);
+    choice->showItem(0);
+    choice->onChange(0);
+    CHECK_FALSE(state.ui.model.useNativeSampleDialogs);
     window.hide();
 }
 
