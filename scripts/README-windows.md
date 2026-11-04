@@ -42,8 +42,13 @@ The Save callback is in `src/glue/storage.cpp`; actual project serialization is
 in `src/core/api/storageApi.cpp`.
 
 A project is a `.gprj` directory containing a `.gptc` document and assets, rather
-than one standalone project file. A future native Save dialog must preserve that
-structure, existing-project overwrite confirmation, and sample/plugin state
-serialization. Important manual checks include browsing and pasting a Windows
-folder path containing spaces, cancellation, saving a new project, and reopening
-it with its samples and synth settings intact.
+than one standalone project file. On Windows, Open Project and Save Project now
+use the system folder picker. Save adds a native project-name field: choose a
+destination folder and enter a name to create a `.gprj` bundle. Selecting an
+existing `.gprj` folder saves that bundle after overwrite confirmation. Open
+selects the `.gprj` folder itself. Other platforms retain their existing browser.
+
+Regression tests cover names and paths containing spaces and dots, selecting an
+existing bundle without nesting projects, and serializing/reopening project data.
+The Windows dialogs still need interactive confirmation, including cancellation
+and reopening projects with samples and synth settings intact.

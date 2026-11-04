@@ -246,6 +246,11 @@ public:
 	static constexpr auto ACTIONEDITOR_LABEL_ACTIONTYPE = "actionEditor_label_actionType";
 
 	static constexpr auto BROWSER_SHOWHIDDENFILES = "browser_showHiddenFiles";
+	static constexpr auto BROWSER_PROJECTNAME = "browser_projectName";
+	static constexpr auto BROWSER_SAVEIN = "browser_saveIn";
+	static constexpr auto BROWSER_PROJECTFOLDER = "browser_projectFolder";
+	static constexpr auto BROWSER_SYSTEMDIALOGERROR = "browser_systemDialogError";
+	static constexpr auto BROWSER_SELECTPROJECT = "browser_selectProject";
 	static constexpr auto BROWSER_OPENPROJECT     = "browser_openProject";
 	static constexpr auto BROWSER_SAVEPROJECT     = "browser_saveProject";
 	static constexpr auto BROWSER_OPENSAMPLE      = "browser_openSample";
