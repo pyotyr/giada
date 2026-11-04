@@ -56,6 +56,16 @@ TEST_CASE("Browser audio previews render without adding waves to the project", "
     for (int frame = 0; frame < channel.shared->audioBuffer.countFrames(); ++frame)
         audible = audible || std::abs(channel.shared->audioBuffer.at(frame, 0)) > 0.01f;
     CHECK(audible);
+    // Let the one-shot reach its natural end without pressing Stop. The browser
+    // polls this status during UI refresh to restore its Play preview label.
+    for (int block = 0; block < 32 && preview.getPreviewStatus() == ChannelStatus::PLAY; ++block)
+    {
+        channel.shared->audioBuffer.clear();
+        m::rendering::renderSampleChannel(channel, Scene{0}, false);
+    }
+    CHECK(preview.getPreviewStatus() == ChannelStatus::OFF);
+    REQUIRE(preview.playPreviewFile(file.string()) == G_RES_OK);
+    CHECK(preview.getPreviewStatus() == ChannelStatus::PLAY);
     preview.freePreviewChannel();
     CHECK_FALSE(model.get().mixer.renderPreview);
     CHECK_FALSE(channels.getChannel(PREVIEW_CHANNEL_ID).sampleChannel->hasWave(Scene{0}));
