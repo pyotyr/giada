@@ -43,6 +43,7 @@
 #include "tests/midiLightning.cpp"
 #include "tests/patch.cpp"
 #include "tests/projectPaths.cpp"
+#include "tests/browserPreview.cpp"
 #include "tests/sampleRendering.cpp"
 #include "tests/version.cpp"
 #include "tests/wave.cpp"

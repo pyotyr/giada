@@ -58,8 +58,8 @@
 #include "src/gui/dialogs/warnings.h"
 #include "src/gui/ui.h"
 #include "src/utils/fs.h"
-#ifdef _WIN32
 #include "src/gui/dialogs/browser/nativeProjectDialog.h"
+#ifdef _WIN32
 #include <FL/x.H>
 #endif
 
@@ -68,7 +68,6 @@ extern giada::m::Engine* g_engine;
 
 namespace giada::c::layout
 {
-#ifdef _WIN32
 namespace
 {
 void openNativeProjectDialog_(bool save)
@@ -77,8 +76,12 @@ void openNativeProjectDialog_(bool save)
 	std::string name = g_ui->model.projectName.empty() ? "Untitled" : g_ui->model.projectName;
 	for (;;)
 	{
+		void* owner = nullptr;
+#ifdef _WIN32
+		owner = reinterpret_cast<void*>(fl_xid(g_ui->mainWindow.get()));
+#endif
 		const auto selection = v::showNativeProjectDialog(save,
-		    reinterpret_cast<void*>(fl_xid(g_ui->mainWindow.get())),
+		    owner,
 		    g_ui->getI18Text(save ? v::LangMap::BROWSER_SAVEPROJECT : v::LangMap::BROWSER_OPENPROJECT),
 		    g_ui->getI18Text(save ? v::LangMap::COMMON_SAVE : v::LangMap::COMMON_LOAD),
 		    directory, name, g_ui->getI18Text(v::LangMap::BROWSER_PROJECTNAME),
@@ -107,30 +110,31 @@ void openNativeProjectDialog_(bool save)
 	}
 }
 } // namespace
-#endif
 
 void openBrowserForProjectLoad()
 {
-#ifdef _WIN32
-	openNativeProjectDialog_(false);
-#else
+	if (g_ui->model.useNativeProjectDialogs)
+	{
+		openNativeProjectDialog_(false);
+		return;
+	}
 	v::gdWindow* childWin = new v::gdBrowserLoad(g_ui->getI18Text(v::LangMap::BROWSER_OPENPROJECT),
 	    g_ui->model.patchPath, c::storage::loadProject, {}, g_ui->model);
 	g_ui->openSubWindow(childWin);
-#endif
 }
 
 /* -------------------------------------------------------------------------- */
 
 void openBrowserForProjectSave()
 {
-#ifdef _WIN32
-	openNativeProjectDialog_(true);
-#else
+	if (g_ui->model.useNativeProjectDialogs)
+	{
+		openNativeProjectDialog_(true);
+		return;
+	}
 	v::gdWindow* childWin = new v::gdBrowserSave(g_ui->getI18Text(v::LangMap::BROWSER_SAVEPROJECT),
 	    g_ui->model.patchPath, g_ui->model.projectName, c::storage::saveProject, {}, g_ui->model);
 	g_ui->openSubWindow(childWin);
-#endif
 }
 
 /* -------------------------------------------------------------------------- */
@@ -138,7 +142,7 @@ void openBrowserForProjectSave()
 void openBrowserForSampleLoad(ID channelId)
 {
 	v::gdWindow* w = new v::gdBrowserLoad(g_ui->getI18Text(v::LangMap::BROWSER_OPENSAMPLE),
-	    g_ui->model.samplePath, c::storage::loadSample, channelId, g_ui->model);
+	    g_ui->model.samplePath, c::storage::loadSample, channelId, g_ui->model, true);
 	g_ui->openSubWindow(w);
 }
 

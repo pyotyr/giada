@@ -111,6 +111,7 @@ struct PluginData
 
 struct MiscData
 {
+	bool                     useNativeProjectDialogs;
 	int                      logMode;
 	bool                     showTooltips;
 	std::vector<std::string> langMaps;

@@ -43,12 +43,62 @@ in `src/core/api/storageApi.cpp`.
 
 A project is a `.gprj` directory containing a `.gptc` document and assets, rather
 than one standalone project file. On Windows, Open Project and Save Project now
-use the system folder picker. Save adds a native project-name field: choose a
-destination folder and enter a name to create a `.gprj` bundle. Selecting an
-existing `.gprj` folder saves that bundle after overwrite confirmation. Open
-selects the `.gprj` folder itself. Other platforms retain their existing browser.
+use native Windows dialogs. Save uses the standard Save As dialog: choose a
+destination folder and enter a name in the full-width project-name field to
+create a `.gprj` bundle. The Save dialog watches for deleted project folders and
+refreshes its location without accepting the dialog or losing the typed name.
+If the current folder is deleted, it returns to the nearest existing parent.
+The storage layer confirms replacement of existing bundles. Open selects the
+`.gprj` folder itself. macOS and Linux use FLTK's native chooser adapter, with
+FLTK's standard fallback where a native desktop chooser is unavailable.
+
+Settings > Misc > Project browser switches immediately between OS native
+(default) and Giada browser (experimental). The preference is saved on normal
+shutdown. Audio sample loading uses Giada's browser and offers Play preview / Stop
+preview. Changing selection or directory, loading a sample, and closing the
+browser all stop the preview. Preview audio uses the existing audio output at
+half volume and is never added to the project's wave list.
 
 Regression tests cover names and paths containing spaces and dots, selecting an
 existing bundle without nesting projects, and serializing/reopening project data.
-The Windows dialogs still need interactive confirmation, including cancellation
-and reopening projects with samples and synth settings intact.
+The build helper runs native Windows GUI tests after the unit tests. The GUI
+suite opens actual dialogs and activates their Save/Open/Cancel buttons, including
+deleting temporary projects and saving again, reusing a deleted name, recovering
+from a deleted current folder, and browsing without accepting. No audio hardware,
+user projects, or user configuration is used. The deletion is performed on test
+fixtures while the dialog is open and the shell is notified; Explorer's Delete
+keyboard shortcut and its confirmation prompt are not themselves automated.
+
+Run only the GUI suite with:
+
+```powershell
+./scripts/test-windows-gui.ps1 -Executable ./build/Release/giada.exe
+```
+
+The runner enforces a timeout and saves JUnit XML, logs, and redacted before/after
+dialog screenshots in `build/gui-test-results`. Personal shell navigation and
+the address bar are masked before a screenshot is saved; unredacted captures are
+never written. Review images before sharing. Windows CI runs this suite and
+uploads the results as an artifact. A local build may explicitly use
+`-SkipGuiTests` when only the non-GUI suite is wanted. Real audio-device playback
+and project reopening with third-party synth settings still need listening and
+integration checks.
+
+Validation scope for a future PR:
+
+- Windows: full application build, unit suite, native dialog and FLTK control GUI
+  tests, including deletion while browsing, cancellation, preference switching,
+  and preview-control visibility. Audio decoding and rendering are tested without
+  hardware; actual speaker playback remains a listening check.
+- Linux: limited adapter smoke tests on Ubuntu 24.04 in Docker's Linux VM under
+  Xvfb/GTK, compiled against the repository's FLTK. Save, Unicode/dotted names,
+  deleting/reusing a bundle name, Open, and Cancel pass. This is **not a full
+  Linux application build or end-to-end audio test**.
+- macOS: **not built or tested**. The native adapter still needs platform testing.
+
+Do not describe the Windows-only regression suite as Linux/macOS validation.
+
+Negative control: disabling the Save dialog's deletion-refresh timer makes the
+deletion GUI test fail (a blocked native prompt and a deleted current location).
+Restoring the timer passes the suite. This confirms the GUI checks exercise the
+regression rather than only the path helper.

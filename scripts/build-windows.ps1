@@ -9,6 +9,7 @@ param(
     [string]$ToolsetDirectory,
     [string]$OutputDirectory,
     [switch]$SkipConfigure,
+    [switch]$SkipGuiTests,
     [switch]$Launch
 )
 
@@ -59,6 +60,9 @@ Invoke-Checked $CMake $buildArguments
 $binaryDirectory = Join-Path $buildDirectory $Configuration
 $executable = Join-Path $binaryDirectory 'giada.exe'
 Invoke-Checked $executable @('--run-tests')
+if (-not $SkipGuiTests) {
+    & (Join-Path $PSScriptRoot 'test-windows-gui.ps1') -Executable $executable
+}
 
 if ($OutputDirectory) {
     $distribution = [IO.Path]::GetFullPath($OutputDirectory)

@@ -78,6 +78,9 @@ gdBrowserBase::gdBrowserBase(const std::string& title, const std::string& path,
 		{
 			ok     = new geTextButton("");
 			cancel = new geTextButton(g_ui->getI18Text(LangMap::COMMON_CANCEL));
+			preview = new geTextButton(g_ui->getI18Text(LangMap::BROWSER_PLAYPREVIEW));
+			footer->addWidget(preview, 110);
+			preview->hide();
 			footer->addWidget(new geBox());
 			footer->addWidget(cancel, 80);
 			footer->addWidget(ok, 80);
