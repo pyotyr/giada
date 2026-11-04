@@ -28,6 +28,7 @@
 #define G_GLUE_STORAGE_H
 
 #include <string>
+#include "src/types.h"
 
 /* giada::c::storage
 Persistence functions. Only the main thread can use these! */
@@ -39,6 +40,7 @@ void saveProject(void* data);
 void loadProjectPath(const std::string& projectPath);
 bool saveProjectPath(const std::string& directory, const std::string& name);
 void loadSample(void* data);
+void loadSamplePath(ID channelId, const std::string& path);
 } // namespace giada::c::storage
 
 #endif

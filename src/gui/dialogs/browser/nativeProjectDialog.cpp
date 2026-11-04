@@ -123,7 +123,7 @@ private:
 };
 } // namespace
 
-NativeProjectSelection showNativeProjectDialog(bool save, void* owner,
+static NativeProjectSelection showWindowsFileDialog_(bool save, bool sample, void* owner,
     const std::string& title, const std::string& buttonLabel,
     const std::string& directory, const std::string& name,
     const std::string& nameLabel, const std::string& folderLabel)
@@ -152,13 +152,19 @@ NativeProjectSelection showNativeProjectDialog(bool save, void* owner,
         options &= ~FOS_OVERWRITEPROMPT; // The storage layer confirms bundle replacement.
         options |= FOS_NOTESTFILECREATE; // The selected item will be a folder, not a file.
     }
-    else
+    else if (!sample)
         options |= FOS_PICKFOLDERS;
+    else
+    {
+        options &= ~FOS_PICKFOLDERS;
+        options |= FOS_FILEMUSTEXIST;
+    }
     if (FAILED(dialog->SetOptions(options)))
         return result;
     dialog->SetTitle(juce::String::fromUTF8(title.c_str()).toWideCharPointer());
     dialog->SetOkButtonLabel(juce::String::fromUTF8(buttonLabel.c_str()).toWideCharPointer());
-    dialog->SetFileNameLabel(juce::String::fromUTF8((save ? nameLabel : folderLabel).c_str()).toWideCharPointer());
+    if (!sample)
+        dialog->SetFileNameLabel(juce::String::fromUTF8((save ? nameLabel : folderLabel).c_str()).toWideCharPointer());
 
     if (!directory.empty())
     {
@@ -174,6 +180,14 @@ NativeProjectSelection showNativeProjectDialog(bool save, void* owner,
         if (FAILED(dialog->SetFileTypes(1, types)) ||
             FAILED(dialog->SetDefaultExtension(L"gprj")) ||
             FAILED(dialog->SetFileName(juce::String::fromUTF8(name.c_str()).toWideCharPointer())))
+            return result;
+    }
+    else if (sample)
+    {
+        const COMDLG_FILTERSPEC types[] = {
+            {L"Audio files", L"*.wav;*.mp3;*.aif;*.aiff;*.flac;*.ogg"},
+            {L"All files", L"*.*"}};
+        if (FAILED(dialog->SetFileTypes(2, types)))
             return result;
     }
 
@@ -205,15 +219,37 @@ NativeProjectSelection showNativeProjectDialog(bool save, void* owner,
         return result;
     const std::string selectedPath = juce::String(path).toStdString();
     CoTaskMemFree(path);
-    if (save)
+    if (save || sample)
     {
         const juce::File project{juce::String::fromUTF8(selectedPath.c_str())};
         result.directory = project.getParentDirectory().getFullPathName().toStdString();
-        result.name = (project.hasFileExtension("gprj") ? project.getFileNameWithoutExtension() : project.getFileName()).toStdString();
+        result.name = (!sample && project.hasFileExtension("gprj") ? project.getFileNameWithoutExtension() : project.getFileName()).toStdString();
     }
     else
         result.directory = selectedPath;
     result.status = NativeProjectSelection::Status::SELECTED;
+    return result;
+}
+
+NativeProjectSelection showNativeProjectDialog(bool save, void* owner,
+    const std::string& title, const std::string& buttonLabel,
+    const std::string& directory, const std::string& name,
+    const std::string& nameLabel, const std::string& folderLabel)
+{
+    return showWindowsFileDialog_(save, false, owner, title, buttonLabel,
+        directory, name, nameLabel, folderLabel);
+}
+
+NativeSampleSelection showNativeSampleDialog(void* owner, const std::string& title,
+    const std::string& buttonLabel, const std::string& directory)
+{
+    const auto selected = showWindowsFileDialog_(false, true, owner, title,
+        buttonLabel, directory, "", "", "");
+    NativeSampleSelection result;
+    result.status = selected.status;
+    if (result.status == NativeSampleSelection::Status::SELECTED)
+        result.path = juce::File(juce::String::fromUTF8(selected.directory.c_str()))
+            .getChildFile(juce::String::fromUTF8(selected.name.c_str())).getFullPathName().toStdString();
     return result;
 }
 } // namespace giada::v
@@ -263,12 +299,37 @@ NativeProjectSelection showFltkNativeProjectDialog(bool save,
     return result;
 }
 
+NativeSampleSelection showFltkNativeSampleDialog(const std::string& title,
+    const std::string& directory)
+{
+    NativeSampleSelection result;
+    Fl_Native_File_Chooser chooser(Fl_Native_File_Chooser::BROWSE_FILE);
+    chooser.title(title.c_str());
+    chooser.directory(directory.c_str());
+    chooser.filter("Audio files\t*.{wav,mp3,aif,aiff,flac,ogg}\nAll files\t*");
+    const int shown = chooser.show();
+    if (shown == 1)
+        result.status = NativeSampleSelection::Status::CANCELLED;
+    else if (shown == 0 && chooser.filename() && *chooser.filename())
+    {
+        result.path = chooser.filename();
+        result.status = NativeSampleSelection::Status::SELECTED;
+    }
+    return result;
+}
+
 #ifndef _WIN32
 NativeProjectSelection showNativeProjectDialog(bool save, void*,
     const std::string& title, const std::string&, const std::string& directory,
     const std::string& name, const std::string&, const std::string&)
 {
     return showFltkNativeProjectDialog(save, title, directory, name);
+}
+
+NativeSampleSelection showNativeSampleDialog(void*, const std::string& title,
+    const std::string&, const std::string& directory)
+{
+    return showFltkNativeSampleDialog(title, directory);
 }
 #endif
 } // namespace giada::v

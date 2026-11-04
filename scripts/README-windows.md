@@ -34,12 +34,13 @@ The initial configuration downloads and compiles dependencies. Later builds reus
 them. Close the development app before rebuilding or packaging over its running
 executable.
 
-## Saving workflow investigation
+## Project and sample browsers
 
-Project saving currently uses `src/gui/dialogs/browser/browserSave.cpp`, built on
-the custom browser in `browserBase.cpp`. Its folder path input is read-only.
-The Save callback is in `src/glue/storage.cpp`; actual project serialization is
-in `src/core/api/storageApi.cpp`.
+Project Open/Save is routed by `src/glue/layout.cpp` through the native adapter
+in `src/gui/dialogs/browser/nativeProjectDialog.cpp`. The custom browser in
+`browserBase.cpp` is available for sample selection, with an editable location
+field. Storage callbacks are in `src/glue/storage.cpp`; actual project
+serialization is in `src/core/api/storageApi.cpp`.
 
 A project is a `.gprj` directory containing a `.gptc` document and assets, rather
 than one standalone project file. On Windows, Open Project and Save Project now
@@ -52,15 +53,20 @@ The storage layer confirms replacement of existing bundles. Open selects the
 `.gprj` folder itself. macOS and Linux use FLTK's native chooser adapter, with
 FLTK's standard fallback where a native desktop chooser is unavailable.
 
-Settings > Misc > Project browser switches immediately between OS native
-(default) and Giada browser (experimental). The preference is saved on normal
-shutdown. Audio sample loading uses Giada's browser and offers Play preview / Stop
-preview. Changing selection or directory, loading a sample, and closing the
-browser all stop the preview. Preview audio uses the existing audio output at
-half volume and is never added to the project's wave list.
+Open Project and Save Project always use the native dialogs. Settings > Misc >
+Sample browser switches sample selection between OS native (default) and Giada
+browser (experimental). The preference is saved on normal shutdown; the previous
+development build's browser preference is migrated to sample selection only.
+Giada's sample browser offers Play preview / Stop preview. Changing selection or
+directory, loading a sample, and closing the browser all stop preview playback.
+Preview audio uses the existing output at half volume and is never added to the
+project's wave list. Project dialogs do not offer audio previews.
 
-OS-native dialogs remain the default while Giada's browser with audio preview is
-further developed and made easier to use. In Giada's browser, the location field
+For the future PR: OS-native sample selection remains the default while Giada's
+browser with audio preview is further developed and made easier to use. The
+maintainer is welcome to make Giada's browser the sample-selection default if
+preferred. This choice does not change the native project-saving workflow.
+In Giada's sample browser, the location field
 accepts typed or pasted folder paths: press Enter to navigate. Quoted paths from
 Explorer's Copy as path are accepted. Invalid paths leave the current folder
 unchanged and display an error.
@@ -68,7 +74,7 @@ unchanged and display an error.
 Regression tests cover names and paths containing spaces and dots, selecting an
 existing bundle without nesting projects, and serializing/reopening project data.
 The build helper runs native Windows GUI tests after the unit tests. The GUI
-suite opens actual dialogs and activates their Save/Open/Cancel buttons, including
+suite opens actual project and sample dialogs and activates their Save/Open/Cancel buttons, including
 deleting temporary projects and saving again, reusing a deleted name, recovering
 from a deleted current folder, and browsing without accepting. No audio hardware,
 user projects, or user configuration is used. The deletion is performed on test
@@ -96,10 +102,11 @@ Validation scope for a future PR:
   tests, including deletion while browsing, cancellation, preference switching,
   and preview-control visibility. Audio decoding and rendering are tested without
   hardware; actual speaker playback remains a listening check.
-- Linux: limited adapter smoke tests on Ubuntu 24.04 in Docker's Linux VM under
+- Linux: limited project-dialog adapter smoke tests on Ubuntu 24.04 in Docker's Linux VM under
   Xvfb/GTK, compiled against the repository's FLTK. Save, Unicode/dotted names,
   deleting/reusing a bundle name, Open, and Cancel pass. This is **not a full
-  Linux application build or end-to-end audio test**.
+  Linux application build or end-to-end audio test**. The new native sample-picker
+  adapter has not been exercised on Linux.
 - macOS: **not built or tested**. The native adapter still needs platform testing.
 
 Do not describe the Windows-only regression suite as Linux/macOS validation.

@@ -113,34 +113,35 @@ void openNativeProjectDialog_(bool save)
 
 void openBrowserForProjectLoad()
 {
-	if (g_ui->model.useNativeProjectDialogs)
-	{
-		openNativeProjectDialog_(false);
-		return;
-	}
-	v::gdWindow* childWin = new v::gdBrowserLoad(g_ui->getI18Text(v::LangMap::BROWSER_OPENPROJECT),
-	    g_ui->model.patchPath, c::storage::loadProject, {}, g_ui->model);
-	g_ui->openSubWindow(childWin);
+	openNativeProjectDialog_(false);
 }
 
 /* -------------------------------------------------------------------------- */
 
 void openBrowserForProjectSave()
 {
-	if (g_ui->model.useNativeProjectDialogs)
-	{
-		openNativeProjectDialog_(true);
-		return;
-	}
-	v::gdWindow* childWin = new v::gdBrowserSave(g_ui->getI18Text(v::LangMap::BROWSER_SAVEPROJECT),
-	    g_ui->model.patchPath, g_ui->model.projectName, c::storage::saveProject, {}, g_ui->model);
-	g_ui->openSubWindow(childWin);
+	openNativeProjectDialog_(true);
 }
 
 /* -------------------------------------------------------------------------- */
 
 void openBrowserForSampleLoad(ID channelId)
 {
+	if (g_ui->model.useNativeSampleDialogs)
+	{
+		void* owner = nullptr;
+#ifdef _WIN32
+		owner = reinterpret_cast<void*>(fl_xid(g_ui->mainWindow.get()));
+#endif
+		const auto selection = v::showNativeSampleDialog(owner,
+		    g_ui->getI18Text(v::LangMap::BROWSER_OPENSAMPLE),
+		    g_ui->getI18Text(v::LangMap::COMMON_LOAD), g_ui->model.samplePath);
+		if (selection.status == v::NativeSampleSelection::Status::SELECTED)
+			c::storage::loadSamplePath(channelId, selection.path);
+		else if (selection.status == v::NativeSampleSelection::Status::FAILED_TO_OPEN)
+			v::gdAlert(g_ui->getI18Text(v::LangMap::BROWSER_SYSTEMDIALOGERROR));
+		return;
+	}
 	v::gdWindow* w = new v::gdBrowserLoad(g_ui->getI18Text(v::LangMap::BROWSER_OPENSAMPLE),
 	    g_ui->model.samplePath, c::storage::loadSample, channelId, g_ui->model, true);
 	g_ui->openSubWindow(w);

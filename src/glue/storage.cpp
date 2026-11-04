@@ -205,14 +205,18 @@ void loadSample(void* data)
 {
 	v::gdBrowserLoad* browser  = static_cast<v::gdBrowserLoad*>(data);
 	std::string       fullPath = browser->getSelectedItem();
+	loadSamplePath(browser->getChannelId(), fullPath);
+	if (!fullPath.empty())
+		browser->do_callback();
+}
 
+void loadSamplePath(ID channelId, const std::string& fullPath)
+{
 	if (fullPath.empty())
 		return;
 
 	g_ui->model.samplePath = utils::fs::dirname(fullPath);
 
-	c::channel::loadChannel(browser->getChannelId(), fullPath);
-
-	browser->do_callback();
+	c::channel::loadChannel(channelId, fullPath);
 }
 } // namespace giada::c::storage

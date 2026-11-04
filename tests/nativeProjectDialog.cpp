@@ -32,7 +32,7 @@ using giada::v::NativeProjectSelection;
 using giada::v::showNativeProjectDialog;
 using Microsoft::WRL::ComPtr;
 
-enum class Scenario { SAVE_NEW, DELETE_REUSE, DELETE_NEW_NAME, DELETE_CURRENT, BROWSE_CANCEL, CANCEL, OPEN };
+enum class Scenario { SAVE_NEW, DELETE_REUSE, DELETE_NEW_NAME, DELETE_CURRENT, BROWSE_CANCEL, CANCEL, OPEN, OPEN_SAMPLE, CANCEL_SAMPLE };
 
 class DialogRun
 {
@@ -47,10 +47,13 @@ public:
         bundle = root / "Old project.gprj";
         fs::create_directory(bundle);
         std::ofstream(bundle / "Old project.gptc") << "{}";
+        std::ofstream(root / "Preview sample.wav") << "Temporary file-picker fixture";
         initialName_ = scenario == Scenario::DELETE_REUSE ? L"Old project.gprj" : L"New melody.v2.gprj";
         giada::v::onDialogCreatedForTest = [this](IFileDialog* dialog)
         {
             dialog_ = dialog;
+            if (scenario_ == Scenario::OPEN_SAMPLE)
+                dialog_->SetFileName(L"Preview sample.wav");
             started_ = GetTickCount64();
             active_ = this;
             timer_ = SetTimer(nullptr, 0, 100, tick_);
@@ -82,6 +85,12 @@ public:
         return showNativeProjectDialog(save, nullptr, "Giada native dialog automated test",
             save ? "Save test project" : "Open test project", utf8_(startFolder),
             juce::String(initialName_.c_str()).toStdString(), "Project name", "Project folder");
+    }
+
+    giada::v::NativeSampleSelection runSample()
+    {
+        return giada::v::showNativeSampleDialog(nullptr, "Giada native dialog automated test",
+            "Open test sample", utf8_(root));
     }
 
     fs::path root, bundle;
@@ -265,11 +274,12 @@ private:
             if (GetTickCount64() - started_ < 500)
                 return;
             capture_(window, "before");
-            if (scenario_ == Scenario::CANCEL || scenario_ == Scenario::OPEN)
+            if (scenario_ == Scenario::CANCEL || scenario_ == Scenario::OPEN ||
+                scenario_ == Scenario::OPEN_SAMPLE || scenario_ == Scenario::CANCEL_SAMPLE)
             {
                 stayedOpen = true;
                 stage_ = 2;
-                click_(window, scenario_ == Scenario::CANCEL ? IDCANCEL : IDOK);
+                click_(window, scenario_ == Scenario::CANCEL || scenario_ == Scenario::CANCEL_SAMPLE ? IDCANCEL : IDOK);
                 return;
             }
             if (scenario_ == Scenario::BROWSE_CANCEL)
@@ -398,7 +408,7 @@ public:
 };
 }
 
-TEST_CASE("Project browser setting switches immediately and survives configuration round trip", "[.][windows-gui]")
+TEST_CASE("Sample browser setting switches immediately and survives configuration round trip", "[.][windows-gui]")
 {
     using namespace native_dialog_tests;
     TestUi state;
@@ -417,18 +427,18 @@ TEST_CASE("Project browser setting switches immediately and survives configurati
     evidence.snapshotWidget(window, "settings-os-native", false);
     choice->showItem(0);
     choice->onChange(0);
-    CHECK_FALSE(state.ui.model.useNativeProjectDialogs);
+    CHECK_FALSE(state.ui.model.useNativeSampleDialogs);
     giada::m::Conf saved;
     state.ui.model.store(saved);
     giada::v::Model reopened;
     reopened.load(saved);
-    CHECK_FALSE(reopened.useNativeProjectDialogs);
+    CHECK_FALSE(reopened.useNativeSampleDialogs);
     window.redraw();
     Fl::check();
     evidence.snapshotWidget(window, "settings-experimental", false);
     choice->showItem(1);
     choice->onChange(1);
-    CHECK(state.ui.model.useNativeProjectDialogs);
+    CHECK(state.ui.model.useNativeSampleDialogs);
     window.hide();
 }
 
@@ -565,4 +575,27 @@ TEST_CASE("Native Open returns a project bundle", "[.][windows-gui]")
     REQUIRE(dialog.submitted);
     REQUIRE(selection.status == NativeProjectSelection::Status::SELECTED);
     CHECK(fs::path(selection.directory) == dialog.bundle);
+}
+
+TEST_CASE("Native sample picker selects an audio file or cancels without a path", "[.][windows-gui]")
+{
+    using namespace native_dialog_tests;
+    const auto scenario = GENERATE(Scenario::OPEN_SAMPLE, Scenario::CANCEL_SAMPLE);
+    DialogRun dialog(scenario);
+    const auto selection = dialog.runSample();
+    INFO(dialog.failure);
+    REQUIRE(dialog.failure.empty());
+    REQUIRE(dialog.stayedOpen);
+    if (scenario == Scenario::OPEN_SAMPLE)
+    {
+        REQUIRE(dialog.submitted);
+        REQUIRE(selection.status == giada::v::NativeSampleSelection::Status::SELECTED);
+        CHECK(fs::path(selection.path) == dialog.root / "Preview sample.wav");
+    }
+    else
+    {
+        CHECK_FALSE(dialog.submitted);
+        CHECK(selection.status == giada::v::NativeSampleSelection::Status::CANCELLED);
+        CHECK(selection.path.empty());
+    }
 }

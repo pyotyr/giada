@@ -47,7 +47,7 @@ struct Conf final
 	bool               valid            = false;
 	int                logMode          = LOG_MODE_MUTE;
 	bool               showTooltips     = true;
-	bool               useNativeProjectDialogs = true;
+	bool               useNativeSampleDialogs = true;
 	std::string        langMap          = "";
 	RtAudio::Api       soundSystem      = G_DEFAULT_SOUNDSYS;
 	int                soundDeviceOut   = G_DEFAULT_SOUNDDEV_OUT;

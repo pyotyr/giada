@@ -47,7 +47,7 @@ struct Model
 
 	int         logMode      = LOG_MODE_MUTE;
 	bool        showTooltips = true;
-	bool        useNativeProjectDialogs = true;
+	bool        useNativeSampleDialogs = true;
 	std::string langMap      = "";
 	std::string pluginPath   = "";
 	std::string patchPath    = "";

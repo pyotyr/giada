@@ -67,10 +67,10 @@ geTabMisc::geTabMisc(geompp::Rect<int> bounds)
 	resizable(body);
 	m_fileBrowser->addItem(g_ui->getI18Text(LangMap::CONFIG_MISC_FILEBROWSER_GIADA), 0);
 	m_fileBrowser->addItem(g_ui->getI18Text(LangMap::CONFIG_MISC_FILEBROWSER_SYSTEM), 1);
-	m_fileBrowser->showItem(m_data.useNativeProjectDialogs ? 1 : 0);
+	m_fileBrowser->showItem(m_data.useNativeSampleDialogs ? 1 : 0);
 	m_fileBrowser->onChange = [this](int id)
 	{
-		m_data.useNativeProjectDialogs = id == 1;
+		m_data.useNativeSampleDialogs = id == 1;
 		c::config::save(m_data);
 	};
 
